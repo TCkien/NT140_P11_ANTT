@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Danh sách domain của các đơn vị thành viên
+domains=("hcmus.edu.vn" "hcmussh.edu.vn" "uit.edu.vn" "hcmut.edu.vn" "hcmiu.edu.vn" "uel.edu.vn" "hcmier.edu.vn" "vnuhcm.edu.vn")
+
+# Hàm thực hiện tìm nameserver và zone transfer
+perform_zone_transfer() {
+    domain=$1
+    echo "=== Domain: $domain ==="
+    
+    # Tìm các nameserver cho domain
+    nameservers=$(dig NS $domain +short)
+    
+    if [ -z "$nameservers" ]; then
+        echo "Không tìm thấy nameserver nào cho $domain"
+        return
+    fi
+    
+    echo "Nameserver cho $domain:"
+    echo "$nameservers"
+    
+    # Thử zone transfer trên từng nameserver
+    for ns in $nameservers; do
+        echo "Thử zone transfer từ $ns"
+        dig AXFR $domain @$ns
+        
+    done
+    echo ""
+}
+
+# Lặp qua từng domain trong danh sách
+for domain in "${domains[@]}"; do
+    perform_zone_transfer $domain
+done
